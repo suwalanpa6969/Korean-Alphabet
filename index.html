@@ -86,18 +86,6 @@
       background: #374151; border-color: #4b5563; color: var(--text-dark);
     }
 
-    .btn {
-      appearance: none; border: 1px solid #d1d5db; background: #fff; color: var(--text-light);
-      padding: 8px 12px; border-radius: 10px; cursor: pointer;
-      box-shadow: 0 1px 2px rgba(0,0,0,.05);
-      transition: background 0.2s, border-color 0.2s;
-    }
-    .btn:hover { border-color: #9ca3af; }
-
-    body.dark .btn {
-      background: #374151; border-color: #4b5563; color: var(--text-dark);
-    }
-
     .grid-wrap { display: grid; place-items: center; }
 
     .grid {
@@ -163,11 +151,8 @@
       padding: 4px 6px;
     }
 
-    .accent { color: var(--accent); font-weight: 600; }
-
     @media (max-width: 480px) {
       .toolbar { gap: 6px; }
-      .btn { padding: 6px 10px; }
     }
   </style>
 </head>
@@ -202,6 +187,18 @@
     const toolbarEl = document.getElementById('toolbar');
     const toggleRoma = document.getElementById('toggleRoma');
     const toggleTheme = document.getElementById('toggleTheme');
+
+    let koreanVoice = null;
+
+    function loadVoices() {
+      const voices = window.speechSynthesis.getVoices();
+      koreanVoice = voices.find(v => v.lang.startsWith('ko')) || null;
+    }
+
+    if (window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+      loadVoices();
+    }
 
     function charFromIndexes(choseongIndex, jungseongIndex) {
       const codePoint = 0xAC00 + (choseongIndex * 21 + jungseongIndex) * 28;
@@ -265,6 +262,7 @@
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'ko-KR';
+      if (koreanVoice) u.voice = koreanVoice;
       u.rate = 0.9;
       window.speechSynthesis.speak(u);
     }
@@ -296,6 +294,11 @@
     fitToScreen();
     window.addEventListener('resize', fitToScreen);
     window.addEventListener('orientationchange', fitToScreen);
+    window.onload = () => {
+      fitToScreen();
+      setTimeout(fitToScreen, 300);
+    };
   </script>
 
 </html>
+
