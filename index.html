@@ -235,72 +235,79 @@
       }
     }
 
-    function makeCell(mainText, kind, roma) {
-      const div = document.createElement('div');
-      div.className = 'cell' + (kind.includes('header') ? ' header ' + kind : '');
-      div.dataset.kind = kind;
+<script>
+  // ... 上面不變，直到 makeCell() 改成：
+  function makeCell(mainText, kind, roma, initial, vowel) {
+    const div = document.createElement('div');
+    div.className = 'cell' + (kind.includes('header') ? ' header ' + kind : '');
+    div.dataset.kind = kind;
 
-      const big = document.createElement('div');
-      big.className = 'han';
-      big.textContent = mainText;
-      div.appendChild(big);
+    const big = document.createElement('div');
+    big.className = 'han';
+    big.textContent = mainText;
+    div.appendChild(big);
 
-      const small = document.createElement('div');
-      small.className = 'roma';
-      small.textContent = roma || '';
-      div.appendChild(small);
+    const small = document.createElement('div');
+    small.className = 'roma';
+    small.textContent = roma || '';
+    div.appendChild(small);
 
-      if (kind === 'content' && mainText && mainText !== '·') {
-        div.tabIndex = 0;
-        div.role = 'button';
-        div.title = '點擊播放：' + mainText;
-        div.addEventListener('click', () => speakKo(mainText));
-        div.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); speakKo(mainText); }});
-      }
-      return div;
+    if (kind === 'content' && mainText && mainText !== '·') {
+      div.tabIndex = 0;
+      div.role = 'button';
+      div.title = '點擊播放：' + mainText;
+      div.addEventListener('click', () => playPronunciation(initial, vowel, mainText));
+      div.addEventListener('keydown', (e) => { 
+        if (e.key === 'Enter' || e.key === ' ') { 
+          e.preventDefault(); 
+          playPronunciation(initial, vowel, mainText); 
+        }
+      });
     }
+    return div;
+  }
 
-    function speakKo(text) {
+  function playPronunciation(initial, vowel, syllable) {
+    const rr = romanize(initial, vowel); // 例: "ga"
+    const audioPath = `audio/${rr}.mp3`;
+    const audio = new Audio(audioPath);
+
+    audio.play().catch(() => {
+      // 播放失敗就 fallback 到 speechSynthesis
       if (!window.speechSynthesis) return;
       window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
+      const u = new SpeechSynthesisUtterance(syllable);
       u.lang = 'ko-KR';
       if (koreanVoice) u.voice = koreanVoice;
       u.rate = 0.9;
       window.speechSynthesis.speak(u);
-    }
-
-    function fitToScreen() {
-      const cols = CONSONANTS_DISPLAY.length + 1;
-      const rows = VOWELS_DISPLAY.length + 1;
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      const toolbarH = toolbarEl.getBoundingClientRect().height + 20;
-      const legendH = 26;
-      const availW = vw - 16;
-      const availH = vh - toolbarH - legendH - 16;
-      const size = Math.floor(Math.min(availW / cols, availH / rows));
-      document.documentElement.style.setProperty('--cell-size', size + 'px');
-      gridEl.style.width = (size * cols) + 'px';
-      gridEl.style.height = (size * rows) + 'px';
-    }
-
-    toggleRoma.addEventListener('change', () => {
-      document.body.classList.toggle('show-roma', toggleRoma.checked);
     });
+  }
 
-    toggleTheme.addEventListener('change', () => {
-      document.body.classList.toggle('dark', toggleTheme.checked);
-    });
+  // buildGrid 也要改一下，傳入 initial/vowel
+  function buildGrid() {
+    const cols = CONSONANTS_DISPLAY.length + 1;
+    const rows = VOWELS_DISPLAY.length + 1;
+    gridEl.style.gridTemplateColumns = `repeat(${cols}, var(--cell-size))`;
+    gridEl.style.gridTemplateRows = `repeat(${rows}, var(--cell-size))`;
 
-    buildGrid();
-    fitToScreen();
-    window.addEventListener('resize', fitToScreen);
-    window.addEventListener('orientationchange', fitToScreen);
-    window.onload = () => {
-      fitToScreen();
-      setTimeout(fitToScreen, 300);
-    };
-  </script>
+    gridEl.innerHTML = '';
+
+    gridEl.appendChild(makeCell('', 'corner'));
+    for (const c of CONSONANTS_DISPLAY) gridEl.appendChild(makeCell(c, 'header-row'));
+
+    for (const v of VOWELS_DISPLAY) {
+      gridEl.appendChild(makeCell(v, 'header-col'));
+      for (const c of CONSONANTS_DISPLAY) {
+        const ci = CHOSEONG_ORDER.indexOf(c);
+        const vi = JUNGSEONG_ORDER.indexOf(v);
+        const syll = (ci >= 0 && vi >= 0) ? charFromIndexes(ci, vi) : '·';
+        const rr = romanize(c, v);
+        gridEl.appendChild(makeCell(syll, 'content', rr, c, v));
+      }
+    }
+  }
+</script>
+
 
 </html>
