@@ -61,28 +61,17 @@
       box-shadow: 0 2px 8px rgba(0,0,0,.04);
       flex-wrap: wrap;
     }
-
-    body.dark .toolbar {
-      background: #1f2937;
-      border-color: #374151;
-    }
+    body.dark .toolbar { background: #1f2937; border-color: #374151; }
 
     .left, .right { display: flex; align-items: center; gap: 12px; }
-
-    .brand {
-      font-weight: 700; letter-spacing:.3px;
-      display: flex; align-items: center; gap: 8px;
-    }
+    .brand { font-weight: 700; letter-spacing:.3px; display: flex; align-items: center; gap: 8px; }
 
     .toggle {
       display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
       user-select: none;
       padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 999px; background:#fff;
     }
-
-    body.dark .toggle {
-      background: #374151; border-color: #4b5563; color: var(--text-dark);
-    }
+    body.dark .toggle { background: #374151; border-color: #4b5563; color: var(--text-dark); }
 
     .grid-wrap {
       display: flex;
@@ -92,7 +81,6 @@
       height: 100%;
       overflow: auto;
     }
-
     .grid {
       display: grid;
       grid-auto-flow: row;
@@ -116,7 +104,6 @@
       user-select: none;
       border: 1px solid #e5e7eb;
     }
-
     body.dark .cell { background: #1f2937; border-color: #374151; }
 
     .cell.header .han { font-size: calc(var(--cell-size) * .5); }
@@ -124,7 +111,6 @@
 
     .cell.header-row { background: var(--header-bg-blue-light); }
     body.dark .cell.header-row { background: var(--header-bg-blue-dark); color: #fff; }
-
     .cell.header-col { background: var(--header-bg-green-light); }
     body.dark .cell.header-col { background: var(--header-bg-green-dark); color: #fff; }
 
@@ -137,9 +123,7 @@
       margin-top: 2px;
       white-space: nowrap;
     }
-
     body.dark .cell .roma { color: var(--roma-dark); }
-
     .show-roma .cell[data-kind="content"] .roma { display: block; }
 
     .cell[data-kind="content"]:hover {
@@ -152,10 +136,6 @@
       font-size: 12px; color: var(--muted);
       display: flex; align-items: center; justify-content: flex-start;
       padding: 4px 6px;
-    }
-
-    @media (max-width: 480px) {
-      .toolbar { gap: 6px; }
     }
   </style>
 </head>
@@ -173,7 +153,7 @@
       <div id="grid" class="grid" aria-label="韓文40音 19×21 表格"></div>
     </div>
 
-    <div class="legend">點擊可播放發音、發音僅供參考，請在YT學習標準發音、請使用電腦瀏覽器開啟網址</div>
+    <div class="legend">點擊可播放發音、發音僅供參考、請在YT學習標準發音</div>
   </div>
 
   <script>
@@ -192,12 +172,10 @@
     const toggleTheme = document.getElementById('toggleTheme');
 
     let koreanVoice = null;
-
     function loadVoices() {
       const voices = window.speechSynthesis.getVoices();
       koreanVoice = voices.find(v => v.lang.startsWith('ko')) || null;
     }
-
     if (window.speechSynthesis) {
       window.speechSynthesis.onvoiceschanged = loadVoices;
       loadVoices();
@@ -207,35 +185,11 @@
       const codePoint = 0xAC00 + (choseongIndex * 21 + jungseongIndex) * 28;
       return String.fromCharCode(codePoint);
     }
-
     function romanize(initialChar, vowelChar) {
       return (RR_INITIAL[initialChar] ?? '') + (RR_VOWEL[vowelChar] ?? '');
     }
 
-    function buildGrid() {
-      const cols = CONSONANTS_DISPLAY.length + 1;
-      const rows = VOWELS_DISPLAY.length + 1;
-      gridEl.style.gridTemplateColumns = `repeat(${cols}, var(--cell-size))`;
-      gridEl.style.gridTemplateRows = `repeat(${rows}, var(--cell-size))`;
-
-      gridEl.innerHTML = '';
-
-      gridEl.appendChild(makeCell('', 'corner'));
-      for (const c of CONSONANTS_DISPLAY) gridEl.appendChild(makeCell(c, 'header-row'));
-
-      for (const v of VOWELS_DISPLAY) {
-        gridEl.appendChild(makeCell(v, 'header-col'));
-        for (const c of CONSONANTS_DISPLAY) {
-          const ci = CHOSEONG_ORDER.indexOf(c);
-          const vi = JUNGSEONG_ORDER.indexOf(v);
-          const syll = (ci >= 0 && vi >= 0) ? charFromIndexes(ci, vi) : '·';
-          const rr = romanize(c, v);
-          gridEl.appendChild(makeCell(syll, 'content', rr));
-        }
-      }
-    }
-
-    function makeCell(mainText, kind, roma) {
+    function makeCell(mainText, kind, roma, initial, vowel) {
       const div = document.createElement('div');
       div.className = 'cell' + (kind.includes('header') ? ' header ' + kind : '');
       div.dataset.kind = kind;
@@ -254,20 +208,48 @@
         div.tabIndex = 0;
         div.role = 'button';
         div.title = '點擊播放：' + mainText;
-        div.addEventListener('click', () => speakKo(mainText));
-        div.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); speakKo(mainText); }});
+        div.addEventListener('click', () => playPronunciation(initial, vowel, mainText));
+        div.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); playPronunciation(initial, vowel, mainText); }});
       }
       return div;
     }
 
-    function speakKo(text) {
-      if (!window.speechSynthesis) return;
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'ko-KR';
-      if (koreanVoice) u.voice = koreanVoice;
-      u.rate = 0.9;
-      window.speechSynthesis.speak(u);
+    function playPronunciation(initial, vowel, syllable) {
+      const rr = romanize(initial, vowel); // 例: "ga"
+      const audioPath = `audio/${rr}.mp3`;
+      const audio = new Audio(audioPath);
+      audio.play().catch(() => {
+        // fallback: 用 speechSynthesis
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(syllable);
+        u.lang = 'ko-KR';
+        if (koreanVoice) u.voice = koreanVoice;
+        u.rate = 0.9;
+        window.speechSynthesis.speak(u);
+      });
+    }
+
+    function buildGrid() {
+      const cols = CONSONANTS_DISPLAY.length + 1;
+      const rows = VOWELS_DISPLAY.length + 1;
+      gridEl.style.gridTemplateColumns = `repeat(${cols}, var(--cell-size))`;
+      gridEl.style.gridTemplateRows = `repeat(${rows}, var(--cell-size))`;
+
+      gridEl.innerHTML = '';
+      gridEl.appendChild(makeCell('', 'corner'));
+      for (const c of CONSONANTS_DISPLAY) gridEl.appendChild(makeCell(c, 'header-row'));
+
+      for (const v of VOWELS_DISPLAY) {
+        gridEl.appendChild(makeCell(v, 'header-col'));
+        for (const c of CONSONANTS_DISPLAY) {
+          const ci = CHOSEONG_ORDER.indexOf(c);
+          const vi = JUNGSEONG_ORDER.indexOf(v);
+          const syll = (ci >= 0 && vi >= 0) ? charFromIndexes(ci, vi) : '·';
+          const rr = romanize(c, v);
+          gridEl.appendChild(makeCell(syll, 'content', rr, c, v));
+        }
+      }
     }
 
     function fitToScreen() {
@@ -288,7 +270,6 @@
     toggleRoma.addEventListener('change', () => {
       document.body.classList.toggle('show-roma', toggleRoma.checked);
     });
-
     toggleTheme.addEventListener('change', () => {
       document.body.classList.toggle('dark', toggleTheme.checked);
     });
@@ -297,10 +278,7 @@
     fitToScreen();
     window.addEventListener('resize', fitToScreen);
     window.addEventListener('orientationchange', fitToScreen);
-    window.onload = () => {
-      fitToScreen();
-      setTimeout(fitToScreen, 300);
-    };
+    window.onload = () => { fitToScreen(); setTimeout(fitToScreen, 300); };
   </script>
-
+</body>
 </html>
