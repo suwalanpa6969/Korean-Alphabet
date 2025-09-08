@@ -39,7 +39,7 @@
 
     .app { height: 100%; width: 100%; display: grid; grid-template-rows: auto 1fr auto; gap: 8px; padding: 8px; }
 
-    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; background: #fff; border: 1px solid #e5e7eb; border-radius: var(--radius); box-shadow: 0 2px 8px rgba(0,0,0,.04); flex-wrap: wrap; }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; background: #fff; border: 1px solid #e5e7eb; border-radius: var(--radius); box-shadow: 0 2px 8px rgba(0,0,0,.04); flex-wrap: wrap; position: sticky; top: 0; z-index: 10; }
     body.dark .toolbar { background: #1f2937; border-color: #374151; }
 
     .left, .right { display: flex; align-items: center; gap: 12px; }
@@ -62,7 +62,7 @@
     .cell.header-col { background: var(--header-bg-green-light); }
     body.dark .cell.header-col { background: var(--header-bg-green-dark); color: #fff; }
 
-    .cell .roma { display: none; font-size: calc(var(--cell-size) * .24); color: var(--roma-light); line-height: 1.05; letter-spacing: .2px; margin-top: 2px; white-space: nowrap; }
+    .cell .roma { display: none; font-size: calc(var(--cell-size) * .24); color: var(--roma-light); line-height: 1.05; letter-spacing: .2px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
     body.dark .cell .roma { color: var(--roma-dark); }
     .show-roma .cell[data-kind="content"] .roma { display: block; }
 
@@ -70,10 +70,14 @@
 
     .legend { font-size: 12px; color: var(--muted); display: flex; align-items: center; justify-content: flex-start; padding: 4px 6px; }
 
-    /* 裝置差異化 */
+    /* 桌面版 */
+    body.desktop .grid-wrap { justify-content: center; align-items: center; }
+
+    /* 手機版 */
     body.mobile .toolbar .brand { font-size: 14px; }
     body.mobile .toolbar { flex-direction: column; align-items: flex-start; }
-    body.mobile .cell { width: calc(var(--cell-size) * 1.2); height: calc(var(--cell-size) * 1.2); }
+    body.mobile .grid-wrap { justify-content: flex-start; align-items: flex-start; }
+    body.mobile .cell { width: calc(var(--cell-size) * 1.2); height: calc(var(--cell-size) * 1.2); border-radius: 8px; }
     body.mobile .han { font-size: calc(var(--cell-size) * 0.7); }
     body.mobile .legend { font-size: 10px; }
   </style>
@@ -195,7 +199,7 @@
     }
 
     function fitToScreen() {
-      if (document.body.classList.contains('mobile')) return; // 手機版允許捲動，不強制壓縮
+      if (document.body.classList.contains('mobile')) return; // 手機版允許捲動
       const cols = CONSONANTS_DISPLAY.length + 1;
       const rows = VOWELS_DISPLAY.length + 1;
       const vw = window.innerWidth;
