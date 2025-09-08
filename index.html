@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes" />
   <title>韓文40音發音工具</title>
   <style>
     :root {
@@ -35,75 +35,23 @@
       overflow: auto;
       transition: background 0.3s, color 0.3s;
     }
-    body.dark {
-      background: var(--bg-dark);
-      color: var(--text-dark);
-    }
+    body.dark { background: var(--bg-dark); color: var(--text-dark); }
 
-    .app {
-      height: 100%;
-      width: 100%;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      gap: 8px;
-      padding: 8px;
-    }
+    .app { height: 100%; width: 100%; display: grid; grid-template-rows: auto 1fr auto; gap: 8px; padding: 8px; }
 
-    .toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      padding: 8px 10px;
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: var(--radius);
-      box-shadow: 0 2px 8px rgba(0,0,0,.04);
-      flex-wrap: wrap;
-    }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; background: #fff; border: 1px solid #e5e7eb; border-radius: var(--radius); box-shadow: 0 2px 8px rgba(0,0,0,.04); flex-wrap: wrap; }
     body.dark .toolbar { background: #1f2937; border-color: #374151; }
 
     .left, .right { display: flex; align-items: center; gap: 12px; }
     .brand { font-weight: 700; letter-spacing:.3px; display: flex; align-items: center; gap: 8px; }
 
-    .toggle {
-      display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
-      user-select: none;
-      padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 999px; background:#fff;
-    }
+    .toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 999px; background:#fff; }
     body.dark .toggle { background: #374151; border-color: #4b5563; color: var(--text-dark); }
 
-    .grid-wrap {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-    }
-    .grid {
-      display: grid;
-      grid-auto-flow: row;
-      gap: var(--gap);
-      padding: var(--gap);
-    }
+    .grid-wrap { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; overflow: auto; }
+    .grid { display: grid; grid-auto-flow: row; gap: var(--gap); padding: var(--gap); }
 
-    .cell {
-      width: var(--cell-size);
-      height: var(--cell-size);
-      border-radius: 8px;
-      background: var(--cell-bg);
-      display: grid;
-      grid-template-rows: 1fr auto;
-      align-items: center;
-      justify-items: center;
-      text-align: center;
-      padding: 4px;
-      position: relative;
-      transition: transform .06s ease, box-shadow .06s ease;
-      user-select: none;
-      border: 1px solid #e5e7eb;
-    }
+    .cell { width: var(--cell-size); height: var(--cell-size); border-radius: 8px; background: var(--cell-bg); display: grid; grid-template-rows: 1fr auto; align-items: center; justify-items: center; text-align: center; padding: 4px; position: relative; transition: transform .06s ease, box-shadow .06s ease; user-select: none; border: 1px solid #e5e7eb; }
     body.dark .cell { background: #1f2937; border-color: #374151; }
 
     .cell.header .han { font-size: calc(var(--cell-size) * .5); }
@@ -114,29 +62,20 @@
     .cell.header-col { background: var(--header-bg-green-light); }
     body.dark .cell.header-col { background: var(--header-bg-green-dark); color: #fff; }
 
-    .cell .roma {
-      display: none;
-      font-size: calc(var(--cell-size) * .24);
-      color: var(--roma-light);
-      line-height: 1.05;
-      letter-spacing: .2px;
-      margin-top: 2px;
-      white-space: nowrap;
-    }
+    .cell .roma { display: none; font-size: calc(var(--cell-size) * .24); color: var(--roma-light); line-height: 1.05; letter-spacing: .2px; margin-top: 2px; white-space: nowrap; }
     body.dark .cell .roma { color: var(--roma-dark); }
     .show-roma .cell[data-kind="content"] .roma { display: block; }
 
-    .cell[data-kind="content"]:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 3px 8px rgba(0,0,0,.08);
-      outline: 2px solid rgba(37,99,235,.15);
-    }
+    .cell[data-kind="content"]:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.08); outline: 2px solid rgba(37,99,235,.15); }
 
-    .legend {
-      font-size: 12px; color: var(--muted);
-      display: flex; align-items: center; justify-content: flex-start;
-      padding: 4px 6px;
-    }
+    .legend { font-size: 12px; color: var(--muted); display: flex; align-items: center; justify-content: flex-start; padding: 4px 6px; }
+
+    /* 裝置差異化 */
+    body.mobile .toolbar .brand { font-size: 14px; }
+    body.mobile .toolbar { flex-direction: column; align-items: flex-start; }
+    body.mobile .cell { width: calc(var(--cell-size) * 1.2); height: calc(var(--cell-size) * 1.2); }
+    body.mobile .han { font-size: calc(var(--cell-size) * 0.7); }
+    body.mobile .legend { font-size: 10px; }
   </style>
 </head>
 <body>
@@ -170,6 +109,10 @@
     const toolbarEl = document.getElementById('toolbar');
     const toggleRoma = document.getElementById('toggleRoma');
     const toggleTheme = document.getElementById('toggleTheme');
+
+    // 偵測裝置
+    const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
+    document.body.classList.add(isMobile ? 'mobile' : 'desktop');
 
     let koreanVoice = null;
     function loadVoices() {
@@ -219,7 +162,6 @@
       const audioPath = `audio/${rr}.mp3`;
       const audio = new Audio(audioPath);
       audio.play().catch(() => {
-        // fallback: 用 speechSynthesis
         if (!window.speechSynthesis) return;
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(syllable);
@@ -253,6 +195,7 @@
     }
 
     function fitToScreen() {
+      if (document.body.classList.contains('mobile')) return; // 手機版允許捲動，不強制壓縮
       const cols = CONSONANTS_DISPLAY.length + 1;
       const rows = VOWELS_DISPLAY.length + 1;
       const vw = window.innerWidth;
@@ -267,12 +210,8 @@
       gridEl.style.height = (size * rows) + 'px';
     }
 
-    toggleRoma.addEventListener('change', () => {
-      document.body.classList.toggle('show-roma', toggleRoma.checked);
-    });
-    toggleTheme.addEventListener('change', () => {
-      document.body.classList.toggle('dark', toggleTheme.checked);
-    });
+    toggleRoma.addEventListener('change', () => { document.body.classList.toggle('show-roma', toggleRoma.checked); });
+    toggleTheme.addEventListener('change', () => { document.body.classList.toggle('dark', toggleTheme.checked); });
 
     buildGrid();
     fitToScreen();
