@@ -1,176 +1,284 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, initial-scale=1, user-scalable=yes">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>韓文40音發音工具</title>
   <style>
     :root {
-      --cell-size: 50px;
+      --cell-size: 42px;
+      --gap: 2px;
+      --radius: 10px;
+      --header-bg-blue-light: #dbeafe;
+      --header-bg-blue-dark: #1e3a8a;
+      --header-bg-green-light: #dcfce7;
+      --header-bg-green-dark: #065f46;
+      --grid-bg: #f9fafb;
+      --cell-bg: #ffffff;
+      --accent: #2563eb;
+      --text: #111827;
+      --muted: #6b7280;
+      --bg-light: #ffffff;
+      --bg-dark: #111827;
+      --text-light: #111827;
+      --text-dark: #f9fafb;
+      --roma-light: #6b7280;
+      --roma-dark: #ffffff;
     }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; width: 100%; margin: 0; padding: 0; }
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: white;
-      color: black;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      overflow: hidden;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, "PingFang TC", "Microsoft JhengHei", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text-light);
+      background: var(--bg-light);
+      overflow: auto;
+      transition: background 0.3s, color 0.3s;
     }
     body.dark {
-      background-color: #121212;
-      color: white;
+      background: var(--bg-dark);
+      color: var(--text-dark);
     }
+
+    .app {
+      height: 100%;
+      width: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 8px;
+      padding: 8px;
+    }
+
     .toolbar {
       display: flex;
-      gap: 10px;
-      margin: 5px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: var(--radius);
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+      flex-wrap: wrap;
     }
-    .toolbar button, .toolbar label {
-      padding: 6px 12px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
+    body.dark .toolbar { background: #1f2937; border-color: #374151; }
+
+    .left, .right { display: flex; align-items: center; gap: 12px; }
+    .brand { font-weight: 700; letter-spacing:.3px; display: flex; align-items: center; gap: 8px; }
+
+    .toggle {
+      display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+      user-select: none;
+      padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 999px; background:#fff;
+    }
+    body.dark .toggle { background: #374151; border-color: #4b5563; color: var(--text-dark); }
+
+    .grid-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
     }
     .grid {
       display: grid;
-      grid-template-columns: repeat(20, var(--cell-size));
-      grid-template-rows: repeat(20, var(--cell-size));
-      overflow: auto;
-      flex-grow: 1;
-      max-width: 100%;
-      max-height: 100%;
-    }
-    .cell {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid #ccc;
-      font-size: 20px;
-      cursor: pointer;
-      position: relative;
-    }
-    .header-consonant {
-      background-color: lightblue;
-      font-weight: bold;
-    }
-    .header-vowel {
-      background-color: lightgreen;
-      font-weight: bold;
-    }
-    .romaja {
-      position: absolute;
-      bottom: 2px;
-      font-size: 10px;
-      color: black;
-    }
-    body.dark .romaja {
-      color: white;
-    }
-    .hint {
-      font-size: 12px;
-      margin: 4px;
-      opacity: 0.7;
+      grid-auto-flow: row;
+      gap: var(--gap);
+      padding: var(--gap);
     }
 
-    /* 手機專用調整 */
-    body.mobile .grid {
-      --cell-size: 60px;
-      justify-content: center;
-      align-content: center;
-      margin: auto;
-    }
-    body.mobile .toolbar {
-      flex-direction: column;
+    .cell {
+      width: var(--cell-size);
+      height: var(--cell-size);
+      border-radius: 8px;
+      background: var(--cell-bg);
+      display: grid;
+      grid-template-rows: 1fr auto;
       align-items: center;
-      gap: 5px;
+      justify-items: center;
+      text-align: center;
+      padding: 4px;
+      position: relative;
+      transition: transform .06s ease, box-shadow .06s ease;
+      user-select: none;
+      border: 1px solid #e5e7eb;
     }
-    body.mobile .cell {
-      font-size: 22px;
-      padding: 2px;
+    body.dark .cell { background: #1f2937; border-color: #374151; }
+
+    .cell.header .han { font-size: calc(var(--cell-size) * .5); }
+    .cell .han { font-size: calc(var(--cell-size) * .52); line-height: 1; }
+
+    .cell.header-row { background: var(--header-bg-blue-light); }
+    body.dark .cell.header-row { background: var(--header-bg-blue-dark); color: #fff; }
+    .cell.header-col { background: var(--header-bg-green-light); }
+    body.dark .cell.header-col { background: var(--header-bg-green-dark); color: #fff; }
+
+    .cell .roma {
+      display: none;
+      font-size: calc(var(--cell-size) * .24);
+      color: var(--roma-light);
+      line-height: 1.05;
+      letter-spacing: .2px;
+      margin-top: 2px;
+      white-space: nowrap;
+    }
+    body.dark .cell .roma { color: var(--roma-dark); }
+    .show-roma .cell[data-kind="content"] .roma { display: block; }
+
+    .cell[data-kind="content"]:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(0,0,0,.08);
+      outline: 2px solid rgba(37,99,235,.15);
+    }
+
+    .legend {
+      font-size: 12px; color: var(--muted);
+      display: flex; align-items: center; justify-content: flex-start;
+      padding: 4px 6px;
     }
   </style>
 </head>
 <body>
-  <div class="toolbar">
-    <label><input type="checkbox" id="toggleRomaja"> 顯示羅馬拼音</label>
-    <button id="toggleTheme">切換黑白模式</button>
+  <div class="app">
+    <div class="toolbar" id="toolbar">
+      <div class="left">
+        <div class="brand">韓文40音表發音工具</div>
+        <label class="toggle"><input type="checkbox" id="toggleRoma" /> 顯示羅馬拼音</label>
+        <label class="toggle"><input type="checkbox" id="toggleTheme" /> 深色模式</label>
+      </div>
+    </div>
+
+    <div class="grid-wrap">
+      <div id="grid" class="grid" aria-label="韓文40音 19×21 表格"></div>
+    </div>
+
+    <div class="legend">點擊可播放發音、發音僅供參考、請在YT學習標準發音</div>
   </div>
-  <div class="grid" id="grid"></div>
-  <div class="hint">點擊播放發音；準確發音請參考 YT</div>
 
   <script>
-    // 偵測裝置
-    function isMobile() {
-      return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const CONSONANTS_DISPLAY = ["ㄱ","ㄴ","ㄷ","ㄹ","ㅁ","ㅂ","ㅅ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ","ㄲ","ㄸ","ㅃ","ㅆ","ㅉ"];
+    const VOWELS_DISPLAY = ["ㅏ","ㅑ","ㅓ","ㅕ","ㅗ","ㅛ","ㅜ","ㅠ","ㅡ","ㅣ","ㅐ","ㅒ","ㅔ","ㅖ","ㅘ","ㅙ","ㅚ","ㅝ","ㅞ","ㅟ","ㅢ"];
+
+    const CHOSEONG_ORDER = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+    const JUNGSEONG_ORDER = ["ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ","ㅗ","ㅘ","ㅙ","ㅚ","ㅛ","ㅜ","ㅝ","ㅞ","ㅟ","ㅠ","ㅡ","ㅢ","ㅣ"];
+
+    const RR_INITIAL = {"ㄱ":"g","ㄲ":"kk","ㄴ":"n","ㄷ":"d","ㄸ":"tt","ㄹ":"r","ㅁ":"m","ㅂ":"b","ㅃ":"pp","ㅅ":"s","ㅆ":"ss","ㅇ":"","ㅈ":"j","ㅉ":"jj","ㅊ":"ch","ㅋ":"k","ㅌ":"t","ㅍ":"p","ㅎ":"h"};
+    const RR_VOWEL = {"ㅏ":"a","ㅐ":"ae","ㅑ":"ya","ㅒ":"yae","ㅓ":"eo","ㅔ":"e","ㅕ":"yeo","ㅖ":"ye","ㅗ":"o","ㅘ":"wa","ㅙ":"wae","ㅚ":"oe","ㅛ":"yo","ㅜ":"u","ㅝ":"wo","ㅞ":"we","ㅟ":"wi","ㅠ":"yu","ㅡ":"eu","ㅢ":"ui","ㅣ":"i"};
+
+    const gridEl = document.getElementById('grid');
+    const toolbarEl = document.getElementById('toolbar');
+    const toggleRoma = document.getElementById('toggleRoma');
+    const toggleTheme = document.getElementById('toggleTheme');
+
+    let koreanVoice = null;
+    function loadVoices() {
+      const voices = window.speechSynthesis.getVoices();
+      koreanVoice = voices.find(v => v.lang.startsWith('ko')) || null;
     }
-    if (isMobile()) {
-      document.body.classList.add("mobile");
-    } else {
-      document.body.classList.add("desktop");
+    if (window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+      loadVoices();
     }
 
-    const consonants = ["ㄱ","ㄴ","ㄷ","ㄹ","ㅁ","ㅂ","ㅅ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ","ㄲ","ㄸ","ㅃ","ㅆ","ㅉ"];
-    const vowels = ["ㅏ","ㅑ","ㅓ","ㅕ","ㅗ","ㅛ","ㅜ","ㅠ","ㅡ","ㅣ","ㅐ","ㅒ","ㅔ","ㅕ","ㅘ","ㅙ","ㅚ","ㅝ","ㅞ","ㅟ","ㅢ"];
-    const romajaMap = {
-      "ㄱ":"g","ㄴ":"n","ㄷ":"d","ㄹ":"r","ㅁ":"m","ㅂ":"b","ㅅ":"s","ㅇ":"ng","ㅈ":"j","ㅊ":"ch","ㅋ":"k","ㅌ":"t","ㅍ":"p","ㅎ":"h","ㄲ":"kk","ㄸ":"tt","ㅃ":"pp","ㅆ":"ss","ㅉ":"jj",
-      "ㅏ":"a","ㅑ":"ya","ㅓ":"eo","ㅕ":"yeo","ㅗ":"o","ㅛ":"yo","ㅜ":"u","ㅠ":"yu","ㅡ":"eu","ㅣ":"i","ㅐ":"ae","ㅒ":"yae","ㅔ":"e","ㅘ":"wa","ㅙ":"wae","ㅚ":"oe","ㅝ":"wo","ㅞ":"we","ㅟ":"wi","ㅢ":"ui"
-    };
+    function charFromIndexes(choseongIndex, jungseongIndex) {
+      const codePoint = 0xAC00 + (choseongIndex * 21 + jungseongIndex) * 28;
+      return String.fromCharCode(codePoint);
+    }
+    function romanize(initialChar, vowelChar) {
+      return (RR_INITIAL[initialChar] ?? '') + (RR_VOWEL[vowelChar] ?? '');
+    }
 
-    const grid = document.getElementById("grid");
-    // 建立表格
-    for (let i = 0; i <= vowels.length; i++) {
-      for (let j = 0; j <= consonants.length; j++) {
-        const cell = document.createElement("div");
-        cell.classList.add("cell");
+    function makeCell(mainText, kind, roma, initial, vowel) {
+      const div = document.createElement('div');
+      div.className = 'cell' + (kind.includes('header') ? ' header ' + kind : '');
+      div.dataset.kind = kind;
 
-        if (i === 0 && j > 0) {
-          cell.textContent = consonants[j-1];
-          cell.classList.add("header-consonant");
-        } else if (j === 0 && i > 0) {
-          cell.textContent = vowels[i-1];
-          cell.classList.add("header-vowel");
-        } else if (i > 0 && j > 0) {
-          const syllable = consonants[j-1] + vowels[i-1];
-          cell.textContent = syllable;
-          cell.addEventListener("click", () => playAudio(syllable));
+      const big = document.createElement('div');
+      big.className = 'han';
+      big.textContent = mainText;
+      div.appendChild(big);
 
-          const romaja = document.createElement("div");
-          romaja.classList.add("romaja");
-          romaja.textContent = (romajaMap[consonants[j-1]] || "") + (romajaMap[vowels[i-1]] || "");
-          romaja.style.display = "none";
-          cell.appendChild(romaja);
+      const small = document.createElement('div');
+      small.className = 'roma';
+      small.textContent = roma || '';
+      div.appendChild(small);
+
+      if (kind === 'content' && mainText && mainText !== '·') {
+        div.tabIndex = 0;
+        div.role = 'button';
+        div.title = '點擊播放：' + mainText;
+        div.addEventListener('click', () => playPronunciation(initial, vowel, mainText));
+        div.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); playPronunciation(initial, vowel, mainText); }});
+      }
+      return div;
+    }
+
+    function playPronunciation(initial, vowel, syllable) {
+      const rr = romanize(initial, vowel); // 例: "ga"
+      const audioPath = `audio/${rr}.mp3`;
+      const audio = new Audio(audioPath);
+      audio.play().catch(() => {
+        // fallback: 用 speechSynthesis
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(syllable);
+        u.lang = 'ko-KR';
+        if (koreanVoice) u.voice = koreanVoice;
+        u.rate = 0.9;
+        window.speechSynthesis.speak(u);
+      });
+    }
+
+    function buildGrid() {
+      const cols = CONSONANTS_DISPLAY.length + 1;
+      const rows = VOWELS_DISPLAY.length + 1;
+      gridEl.style.gridTemplateColumns = `repeat(${cols}, var(--cell-size))`;
+      gridEl.style.gridTemplateRows = `repeat(${rows}, var(--cell-size))`;
+
+      gridEl.innerHTML = '';
+      gridEl.appendChild(makeCell('', 'corner'));
+      for (const c of CONSONANTS_DISPLAY) gridEl.appendChild(makeCell(c, 'header-row'));
+
+      for (const v of VOWELS_DISPLAY) {
+        gridEl.appendChild(makeCell(v, 'header-col'));
+        for (const c of CONSONANTS_DISPLAY) {
+          const ci = CHOSEONG_ORDER.indexOf(c);
+          const vi = JUNGSEONG_ORDER.indexOf(v);
+          const syll = (ci >= 0 && vi >= 0) ? charFromIndexes(ci, vi) : '·';
+          const rr = romanize(c, v);
+          gridEl.appendChild(makeCell(syll, 'content', rr, c, v));
         }
-        grid.appendChild(cell);
       }
     }
 
-    // 播放音檔或 TTS
-    function playAudio(text) {
-      const audio = new Audio(`audio/${text}.mp3`);
-      audio.onerror = () => {
-        speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = "ko-KR";
-        speechSynthesis.speak(utterance);
-      };
-      audio.play();
+    function fitToScreen() {
+      const cols = CONSONANTS_DISPLAY.length + 1;
+      const rows = VOWELS_DISPLAY.length + 1;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const toolbarH = toolbarEl.getBoundingClientRect().height + 20;
+      const legendH = 26;
+      const availW = vw - 16;
+      const availH = vh - toolbarH - legendH - 16;
+      const size = Math.floor(Math.min(availW / cols, availH / rows));
+      document.documentElement.style.setProperty('--cell-size', size + 'px');
+      gridEl.style.width = (size * cols) + 'px';
+      gridEl.style.height = (size * rows) + 'px';
     }
 
-    // 切換羅馬拼音顯示
-    document.getElementById("toggleRomaja").addEventListener("change", (e) => {
-      document.querySelectorAll(".romaja").forEach(r => {
-        r.style.display = e.target.checked ? "block" : "none";
-      });
+    toggleRoma.addEventListener('change', () => {
+      document.body.classList.toggle('show-roma', toggleRoma.checked);
+    });
+    toggleTheme.addEventListener('change', () => {
+      document.body.classList.toggle('dark', toggleTheme.checked);
     });
 
-    // 切換黑白模式
-    document.getElementById("toggleTheme").addEventListener("click", () => {
-      document.body.classList.toggle("dark");
-    });
+    buildGrid();
+    fitToScreen();
+    window.addEventListener('resize', fitToScreen);
+    window.addEventListener('orientationchange', fitToScreen);
+    window.onload = () => { fitToScreen(); setTimeout(fitToScreen, 300); };
   </script>
 </body>
 </html>
